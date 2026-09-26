@@ -26,14 +26,14 @@ resource "proxmox_virtual_environment_file" "cloud_init" {
   content_type = "snippets"
   datastore_id = "local"
   node_name    = var.proxmox_node
-  for_each = var.vms
+  for_each     = var.vms
 
   source_raw {
     data = templatefile(
       "${path.module}/cloud-init/user_data.yaml",
       {
         hostname       = each.value.hostname
-        ssh_public_key  = var.ssh_public_key
+        ssh_public_key = var.ssh_public_key
       }
     )
     file_name = "${each.value.hostname}-ci.yaml"
@@ -43,7 +43,7 @@ resource "proxmox_virtual_environment_file" "cloud_init" {
 resource "proxmox_virtual_environment_vm" "vm" {
   for_each = var.vms
 
-  name = each.value.hostname
+  name      = each.value.hostname
   node_name = var.proxmox_node
   on_boot   = false
   tags      = ["terraform", "ubuntu"]
@@ -59,7 +59,7 @@ resource "proxmox_virtual_environment_vm" "vm" {
   }
 
   memory {
-    dedicated   = each.value.memory
+    dedicated = each.value.memory
   }
 
   network_device {
