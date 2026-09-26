@@ -30,7 +30,7 @@ resource "proxmox_virtual_environment_file" "cloud_init" {
 
   source_raw {
     data = templatefile(
-      "${path.module}/cloud-init/user_data.yaml",
+      "${path.module}/../cloud-init/user_data.yaml",
       {
         hostname       = each.value.hostname
         ssh_public_key = var.ssh_public_key
