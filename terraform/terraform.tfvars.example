@@ -1,0 +1,2 @@
+api_token = "terraform-prov@pve!terraform=4192f998-..."
+endpoint  = "https://192.168.10.11:8006/"
