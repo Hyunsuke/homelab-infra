@@ -12,14 +12,7 @@ variable "proxmox_node" {
   default = "proxmox1"
 }
 
-# variable "vm_hostname" {
-#   type    = string
-#   default = "tf-demo"
-# }
-
 variable "vms" {
-  # type = string
-  # default = "k8s-cp-1"
   type = map(object({
     hostname = string
     cores    = number

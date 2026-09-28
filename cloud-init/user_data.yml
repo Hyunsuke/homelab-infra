@@ -3,6 +3,7 @@ hostname: ${hostname}
 package_update: true
 packages:
   - qemu-guest-agent
+  - python3
 users:
   - default
   - name: ubuntu
