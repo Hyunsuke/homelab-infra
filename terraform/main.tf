@@ -53,7 +53,7 @@ resource "proxmox_virtual_environment_vm" "vm" {
   }
 
   cpu {
-    type    = "x86-64-v2-AES"
+    type    = "kvm64"
     cores   = each.value.cores
     sockets = 1
   }

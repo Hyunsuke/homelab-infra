@@ -9,7 +9,7 @@ variable "api_token" {
 
 variable "proxmox_node" {
   type    = string
-  default = "proxmox1"
+  default = "pve"
 }
 
 variable "vms" {

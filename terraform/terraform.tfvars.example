@@ -1,2 +1,19 @@
 api_token = "terraform-prov@pve!terraform=4192f998-..."
 endpoint  = "https://192.168.10.11:8006/"
+ssh_public_key = "ssh-ed25519..."
+
+vms = {
+  "k8s-cp-01" = {
+    hostname = "k8s-control-plane-01"
+    role     = "control_plane"
+    cores    = 2
+    memory   = 2048
+  }
+
+  "k8s-worker-01" = {
+    hostname = "k8s-workers-01"
+    role     = "workers"
+    cores    = 2
+    memory   = 2048
+  }
+}
