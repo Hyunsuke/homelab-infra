@@ -1,0 +1,93 @@
+---
+- name: Setup Kubernetes Dependencies
+  hosts: kubernetes
+  become: true
+  tasks:
+    - name: Update apt cache and upgrade packages
+      ansible.builtin.apt:
+        update_cache: true
+
+    - name: Install required packages
+      ansible.builtin.apt:
+        name:
+          - curl
+          - gpg
+          - containerd
+        state: present
+
+    - name: Configure containerd
+      ansible.builtin.shell:
+        cmd: |
+          set -o pipefail
+          mkdir -p /etc/containerd
+          if ! grep -q 'SystemdCgroup = true' /etc/containerd/config.toml 2>/dev/null; then
+            containerd config default | sed 's/SystemdCgroup = false/SystemdCgroup = true/' > /etc/containerd/config.toml
+            systemctl restart containerd
+            echo "Configuration updated"
+          fi
+        executable: /bin/bash
+      changed_when: "'Configuration updated' in containerd_config.stdout"
+
+    - name: Verify Containerd installation
+      ansible.builtin.command: containerd --version
+      changed_when: false
+
+    - name: Create Kubernetes keyring directory
+      ansible.builtin.file:
+        path: /etc/apt/keyrings
+        state: directory
+        mode: '0755'
+
+    - name: Check if Kubernetes GPG key exists
+      ansible.builtin.stat:
+        path: /etc/apt/keyrings/kubernetes-apt-keyring.gpg
+      register: gpg_key
+
+    - name: Download Kubernetes GPG key
+      ansible.builtin.get_url:
+        url: https://pkgs.k8s.io/core:/stable:/v1.33/deb/Release.key
+        dest: /tmp/k8s-release.key
+        mode: '0644'
+      when: not gpg_key.stat.exists
+
+    - name: Import Kubernetes GPG key
+      ansible.builtin.command: gpg --dearmor -o /etc/apt/keyrings/kubernetes-apt-keyring.gpg /tmp/k8s-release.key
+      when: not gpg_key.stat.exists
+      changed_when: true
+
+    - name: Add Kubernetes repository
+      ansible.builtin.copy:
+        content: "deb [signed-by=/etc/apt/keyrings/kubernetes-apt-keyring.gpg] https://pkgs.k8s.io/core:/stable:/v1.33/deb/ /\n"
+        dest: /etc/apt/sources.list.d/kubernetes.list
+        mode: '0644'
+
+    - name: Update apt cache
+      ansible.builtin.apt:
+        update_cache: true
+
+    - name: Install Kubernetes packages
+      ansible.builtin.apt:
+        name:
+          - kubelet
+          - kubeadm
+          - kubectl
+        state: present
+
+    - name: Hold Kubernetes packages
+      ansible.builtin.dpkg_selections:
+        name: "{{ item }}"
+        selection: hold
+      loop:
+        - kubelet
+        - kubeadm
+        - kubectl
+
+    - name: Disable swap
+      ansible.builtin.command: swapoff -a
+      changed_when: false
+
+    - name: Disable swap in fstab
+      ansible.builtin.replace:
+        path: /etc/fstab
+        regexp: '^([^#].*?\sswap\s+.*)$'
+        replace: '#\1'
